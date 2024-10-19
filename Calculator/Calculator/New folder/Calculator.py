@@ -1,13 +1,15 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
-import requests
-from sympy import sympify, symbols, Matrix, solve
+from sympy import sympify, symbols, Matrix, solve, lambdify
+import numpy as np
+import matplotlib.pyplot as plt
 
 class Calculator:
     def __init__(self, root):
         self.root = root
         self.root.title("ماشین حساب پیشرفته")
-        self.root.geometry("1000x800")  # افزایش ابعاد پنجره اصلی
+        self.root.geometry("1400x1000")  # افزایش ابعاد پنجره اصلی
+        self.root.configure(bg="lightblue")  # تغییر رنگ پس‌زمینه پنجره به آبی
 
         self.equation = tk.StringVar()
 
@@ -16,21 +18,27 @@ class Calculator:
         self.notebook.pack(fill='both', expand=True)
 
         # ایجاد تب‌ها
-        self.base_frame = ttk.Frame(self.notebook)
+        self.base_frame = ttk.Frame(self.notebook, bg="lightblue")  # تغییر رنگ پس‌زمینه تب به آبی
         self.notebook.add(self.base_frame, text="ماشین حساب")
 
-        self.scientific_frame = ttk.Frame(self.notebook)
+        self.scientific_frame = ttk.Frame(self.notebook, bg="lightblue")  # تغییر رنگ پس‌زمینه تب به آبی
         self.notebook.add(self.scientific_frame, text="ماشین حساب علمی")
 
+        self.cpp_frame = ttk.Frame(self.notebook, bg="lightblue")  # تغییر رنگ پس‌زمینه تب به آبی
+        self.notebook.add(self.cpp_frame, text="کد C++")
+
+        self.python_frame = ttk.Frame(self.notebook, bg="lightblue")  # تغییر رنگ پس‌زمینه تب به آبی
+        self.notebook.add(self.python_frame, text="کد Python")
+
         # نمایشگر معادله
-        self.display = tk.Text(self.base_frame, height=4, width=60, font=("Arial", 20))  # افزایش اندازه نمایشگر
+        self.display = tk.Text(self.base_frame, height=6, width=80, font=("Arial", 24), bg="white", fg="black")  # پس‌زمینه نمایشگر سفید
         self.display.grid(row=0, column=0, columnspan=5, padx=10, pady=10)
 
         # ایجاد قاب برای دکمه‌ها و اسکرول بار
-        self.button_canvas = tk.Canvas(self.base_frame)
+        self.button_canvas = tk.Canvas(self.base_frame, bg="lightblue")  # تغییر رنگ پس‌زمینه کانواس به آبی
         self.button_canvas.grid(row=1, column=0, columnspan=5, sticky="nsew")
 
-        self.button_frame = ttk.Frame(self.button_canvas)
+        self.button_frame = ttk.Frame(self.button_canvas, bg="lightblue")  # تغییر رنگ پس‌زمینه فریم دکمه‌ها به آبی
         self.button_frame.bind(
             "<Configure>",
             lambda e: self.button_canvas.configure(scrollregion=self.button_canvas.bbox("all"))
@@ -49,6 +57,14 @@ class Calculator:
         self.create_base_buttons()
         self.create_scientific_buttons()
 
+        # افزودن کدهای C++ و Python به صفحات مربوطه
+        self.add_cpp_code()
+        self.add_python_code()
+
+        # ایجاد دکمه تغییر حالت تاریک
+        self.dark_mode = False
+        self.create_dark_mode_button()
+
     def create_base_buttons(self):
         button_texts = [
             "7", "8", "9", "/", "C",
@@ -65,9 +81,9 @@ class Calculator:
         row_val = 0
         col_val = 0
         for text in button_texts:
-            button = tk.Button(self.button_frame, text=text, padx=30, pady=30, font=("Arial", 18),  # افزایش اندازه دکمه‌ها
+            button = tk.Button(self.button_frame, text=text, padx=50, pady=50, font=("Arial", 20), bg="white", fg="black",  # پس‌زمینه دکمه‌ها سفید
                                command=lambda txt=text: self.button_click(txt))
-            button.grid(row=row_val, column=col_val, sticky="nsew", padx=5, pady=5)
+            button.grid(row=row_val, column=col_val, sticky="nsew", padx=10, pady=10)
             col_val += 1
             if col_val > 4:
                 col_val = 0
@@ -88,9 +104,9 @@ class Calculator:
         row_val = 0
         col_val = 0
         for text in scientific_buttons:
-            button = tk.Button(self.scientific_frame, text=text, padx=30, pady=30, font=("Arial", 18),  # افزایش اندازه دکمه‌ها
+            button = tk.Button(self.scientific_frame, text=text, padx=50, pady=50, font=("Arial", 20), bg="white", fg="black",  # پس‌زمینه دکمه‌ها سفید
                                command=lambda txt=text: self.button_click(txt))
-            button.grid(row=row_val, column=col_val, sticky="nsew", padx=5, pady=5)
+            button.grid(row=row_val, column=col_val, sticky="nsew", padx=10, pady=10)
             col_val += 1
             if col_val > 4:
                 col_val = 0
@@ -101,6 +117,63 @@ class Calculator:
             self.scientific_frame.grid_columnconfigure(i, weight=1)
         for i in range(row_val + 1):
             self.scientific_frame.grid_rowconfigure(i, weight=1)
+
+    def add_cpp_code(self):
+        cpp_code = """
+#include <iostream>
+#include <cmath>
+using namespace std;
+
+double evaluate_expression(string expression) {
+    // کد محاسبه معادله
+}
+
+int main() {
+    string equation;
+    cout << "معادله خود را وارد کنید: ";
+    getline(cin, equation);
+    cout << "نتیجه: " << evaluate_expression(equation) << endl;
+    return 0;
+}
+"""
+        cpp_display = tk.Text(self.cpp_frame, height=20, width=90, font=("Courier", 12), bg="white", fg="black")  # پس‌زمینه نمایشگر کد سفید
+        cpp_display.insert(tk.END, cpp_code)
+        cpp_display.config(state=tk.DISABLED)
+        cpp_display.pack(padx=10, pady=10)
+
+    def add_python_code(self):
+        python_code = """
+import sympy as sp
+
+def evaluate_expression(expression):
+    x = sp.symbols('x')
+    return sp.sympify(expression).evalf()
+
+equation = input("معادله خود را وارد کنید: ")
+result = evaluate_expression(equation)
+print(f"نتیجه: {result}")
+"""
+        python_display = tk.Text(self.python_frame, height=20, width=90, font=("Courier", 12), bg="white", fg="black")  # پس‌زمینه نمایشگر کد سفید
+        python_display.insert(tk.END, python_code)
+        python_display.config(state=tk.DISABLED)
+        python_display.pack(padx=10, pady=10)
+
+    def create_dark_mode_button(self):
+        dark_mode_button = tk.Button(self.base_frame, text="تغییر به حالت تاریک", command=self.toggle_dark_mode, bg="white", fg="black")  # پس‌زمینه دکمه سفید
+        dark_mode_button.grid(row=0, column=5)
+
+    def toggle_dark_mode(self):
+        self.dark_mode = not self.dark_mode
+        if self.dark_mode:
+            self.root.configure(bg="black")
+            self.display.configure(bg="black", fg="white")
+            self.button_frame.configure(bg="black")
+            self.vsb.configure(bg="black", troughcolor="gray", bd=2)  # تغییر رنگ اسکرول بار
+        else:
+            self.root.configure(bg="lightblue")
+            self.display.configure(bg="white", fg="black")
+            self.button_frame.configure(bg="lightblue")
+            self.vsb.configure(bg="lightblue", troughcolor="gray", bd=2)
 
     def on_mouse_wheel(self, event):
         self.button_canvas.yview_scroll(int(-1*(event.delta/120)), "units")
@@ -152,110 +225,60 @@ class Calculator:
             messagebox.showerror("خطا", f"معادله اشتباه است یا متغیرهای x، y، z ندارد: {e}")
             self.display.delete("1.0", tk.END)
 
-    def solve_matrix_equation(self):
-        try:
-            matrix_A_str = self.display.get("1.0", "2.0").strip()
-            matrix_B_str = self.display.get("2.0", "3.0").strip()
-
-            matrix_A = Matrix(sympify(matrix_A_str))
-            matrix_B = Matrix(sympify(matrix_B_str))
-
-            if matrix_A.shape[1] != matrix_B.shape[0]:
-                raise ValueError("تعداد ستون‌های ماتریس A باید برابر با تعداد سطرهای ماتریس B باشد.")
-
-            solutions = matrix_A.inv() * matrix_B
-
-            self.display.delete("1.0", tk.END)
-            self.display.insert(tk.END, f"X =\n{solutions}")
-        except Exception as e:
-            messagebox.showerror("خطا", f"معادلات ماتریسی وارد شده اشتباه است یا سازگار نیستند: {e}")
-            self.display.delete("1.0", tk.END)
-
-    def plot_graph(self):
-        pass  # کد رسم نمودار
+    def display_solutions(self, solutions):
+        result_string = ""
+        for var, sol in solutions.items():
+            result_string += f"{var}: {sol}\n"
+        self.display.delete("1.0", tk.END)
+        self.display.insert(tk.END, result_string)
 
     def differentiate_expression(self):
-        pass  # کد مشتق
+        equation = self.display.get("1.0", tk.END).strip()
+        try:
+            x = symbols('x')
+            derivative = sympify(equation).diff(x)
+            self.display.delete("1.0", tk.END)
+            self.display.insert(tk.END, f"مشتق: {derivative}")
+        except Exception as e:
+            messagebox.showerror("خطا", f"خطا در محاسبه مشتق: {e}")
+            self.display.delete("1.0", tk.END)
 
     def integrate_expression(self):
-        pass  # کد انتگرال
+        equation = self.display.get("1.0", tk.END).strip()
+        try:
+            x = symbols('x')
+            integral = sympify(equation).integrate(x)
+            self.display.delete("1.0", tk.END)
+            self.display.insert(tk.END, f"انتگرال: {integral}")
+        except Exception as e:
+            messagebox.showerror("خطا", f"خطا در محاسبه انتگرال: {e}")
+            self.display.delete("1.0", tk.END)
 
     def enter_matrix(self):
-        matrix_window = tk.Toplevel(self.root)
-        matrix_window.title("ورود ماتریس")
+        # کد برای وارد کردن ماتریس و پردازش آن
+        pass
 
-        tk.Label(matrix_window, text="تعداد سطرها:").grid(row=0, column=0)
-        tk.Label(matrix_window, text="تعداد ستون‌ها:").grid(row=1, column=0)
+    def solve_matrix_equation(self):
+        # کد برای حل معادله ماتریسی
+        pass
 
-        rows_entry = tk.Entry(matrix_window)
-        cols_entry = tk.Entry(matrix_window)
-        rows_entry.grid(row=0, column=1)
-        cols_entry.grid(row=1, column=1)
-
-        def create_matrix_entries():
-            try:
-                rows = int(rows_entry.get())
-                cols = int(cols_entry.get())
-            except ValueError:
-                messagebox.showerror("خطا", "تعداد سطرها و ستون‌ها باید عددی باشد.")
-                return
-
-            for widget in matrix_window.winfo_children():
-                if isinstance(widget, tk.Entry):
-                    widget.destroy()
-
-            self.matrix_entries = []
-            for i in range(rows):
-                row_entries = []
-                for j in range(cols):
-                    entry = tk.Entry(matrix_window, width=5)
-                    entry.grid(row=i+2, column=j)
-                    row_entries.append(entry)
-                self.matrix_entries.append(row_entries)
-
-            def save_matrix():
-                matrix = []
-                for row in self.matrix_entries:
-                    row_values = []
-                    for entry in row:
-                        try:
-                            value = float(entry.get())
-                            row_values.append(value)
-                        except ValueError:
-                            messagebox.showerror("خطا", "لطفاً مقادیر معتبر وارد کنید.")
-                            return
-                    matrix.append(row_values)
-
-                matrix_str = str(Matrix(matrix))
-                self.display.delete("1.0", tk.END)
-                self.display.insert(tk.END, matrix_str)
-                matrix_window.destroy()
-
-            save_button = tk.Button(matrix_window, text="ذخیره", command=save_matrix)
-            save_button.grid(row=rows+2, column=0, columnspan=cols)
-
-        create_matrix_button = tk.Button(matrix_window, text="ایجاد ماتریس", command=create_matrix_entries)
-        create_matrix_button.grid(row=2, column=0, columnspan=2)
+    def plot_graph(self):
+        equation = self.display.get("1.0", tk.END).strip()
+        try:
+            x = np.linspace(-10, 10, 100)
+            y = lambdify(symbols('x'), sympify(equation), modules='numpy')(x)
+            plt.plot(x, y)
+            plt.title('نمودار معادله')
+            plt.xlabel('x')
+            plt.ylabel('y')
+            plt.grid()
+            plt.show()
+        except Exception as e:
+            messagebox.showerror("خطا", f"خطا در رسم نمودار: {e}")
 
     def download_data(self):
-        url = "https://api.exchangerate-api.com/v4/latest/USD"
-        try:
-            response = requests.get(url)
-            data = response.json()
-            rates = data["rates"]
-            result = "\n".join([f"{currency}: {rate}" for currency, rate in rates.items()])
-            self.display.delete("1.0", tk.END)
-            self.display.insert(tk.END, result)
-        except Exception as e:
-            messagebox.showerror("خطا", f"خطا در دانلود داده‌ها: {e}")
-
-    def display_solutions(self, solutions):
-        self.display.delete("1.0", tk.END)
-        if isinstance(solutions, dict):
-            for variable, solution in solutions.items():
-                self.display.insert(tk.END, f"{variable} = {solution}\n")
-        else:
-            self.display.insert(tk.END, solutions)
+        # کد برای دانلود داده‌ها
+        pass
 
 if __name__ == "__main__":
     root = tk.Tk()
